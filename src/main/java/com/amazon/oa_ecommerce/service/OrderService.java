@@ -2,7 +2,9 @@ package com.amazon.oa_ecommerce.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.amazon.oa_ecommerce.exception.ResourceNotFoundException;
 import com.amazon.oa_ecommerce.model.Order;
@@ -22,15 +24,18 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     public Order createOrder(Order order) {
-        // Step 1 - validate and deduct stock
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Order must have at least one item");
+        }
         for (OrderItem item : order.getItems()) {
+            if (item.getProductId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Each item must have a valid productId and quantity > 0");
+            }
             Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + item.getProductId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + item.getProductId()));
 
-            // Step 2 - check stock
             if (product.getStock() < item.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName() 
-                    + " available: " + product.getStock());
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient stock for product: " + product.getName() + " available: " + product.getStock());
             }
 
             // Step 3 - deduct stock

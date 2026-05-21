@@ -1,5 +1,7 @@
 package com.amazon.oa_ecommerce.controller;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -54,7 +56,12 @@ public class AuthController {
             String token = jwtUtil.generateToken(request.getUsername());
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("timestamp", Instant.now().toString());
+            error.put("code", 401);
+            error.put("error", "Unauthorized");
+            error.put("message", "Invalid credentials");
+            return ResponseEntity.status(401).body(error);
         }
     }
 }
