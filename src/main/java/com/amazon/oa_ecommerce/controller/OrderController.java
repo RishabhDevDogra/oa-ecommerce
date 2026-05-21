@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +19,9 @@ import com.amazon.oa_ecommerce.dto.OrderItemResponse;
 import com.amazon.oa_ecommerce.dto.OrderResponse;
 import com.amazon.oa_ecommerce.model.Order;
 import com.amazon.oa_ecommerce.model.OrderStatus;
+import com.amazon.oa_ecommerce.security.JwtUtil;
 import com.amazon.oa_ecommerce.service.OrderService;
+import com.amazon.oa_ecommerce.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,9 +31,16 @@ import lombok.RequiredArgsConstructor;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtUtil jwtUtil;
+    private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody Order order) {
+    public ResponseEntity<OrderResponse> createOrder(@RequestHeader("Authorization") String authHeader, @RequestBody Order order) {
+        // Extract JWT token from header
+        String token = authHeader.replace("Bearer ", "");
+        String username = jwtUtil.getUsername(token);
+        Long userId = userService.findByUsername(username).getId();
+        order.setUserId(userId);
         Order saved = orderService.createOrder(order);
         return ResponseEntity.status(HttpStatus.CREATED).body(toOrderResponse(saved));
     }
