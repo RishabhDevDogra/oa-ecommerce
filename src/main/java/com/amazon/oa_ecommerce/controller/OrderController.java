@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.amazon.oa_ecommerce.dto.OrderItemResponse;
+import com.amazon.oa_ecommerce.dto.OrderRequest;
 import com.amazon.oa_ecommerce.dto.OrderResponse;
 import com.amazon.oa_ecommerce.model.Order;
+import com.amazon.oa_ecommerce.model.OrderItem;
 import com.amazon.oa_ecommerce.model.OrderStatus;
 import com.amazon.oa_ecommerce.security.JwtUtil;
 import com.amazon.oa_ecommerce.service.OrderService;
 import com.amazon.oa_ecommerce.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,16 +37,30 @@ public class OrderController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
 
+    
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestHeader("Authorization") String authHeader, @RequestBody Order order) {
+    public ResponseEntity<OrderResponse> createOrder(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody OrderRequest orderRequest) {
         // Extract JWT token from header
         String token = authHeader.replace("Bearer ", "");
         String username = jwtUtil.getUsername(token);
         Long userId = userService.findByUsername(username).getId();
+
+        Order order = new Order();
         order.setUserId(userId);
+        order.setItems(orderRequest.getItems().stream().map(req -> {
+            OrderItem item = new OrderItem();
+            item.setProductId(req.getProductId());
+            item.setQuantity(req.getQuantity());
+            // Product name and price will be set in service layer for accuracy
+            return item;
+        }).collect(Collectors.toList()));
+        
         Order saved = orderService.createOrder(order);
         return ResponseEntity.status(HttpStatus.CREATED).body(toOrderResponse(saved));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
