@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.amazon.oa_ecommerce.model.Product;
 import com.amazon.oa_ecommerce.service.ProductService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -36,13 +37,13 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product)); // 201
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        return ResponseEntity.ok(productService.updateProduct(id, product)); // 200
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+        return ResponseEntity.ok(productService.updateProduct(id, product));
     }
 
     @DeleteMapping("/{id}")
