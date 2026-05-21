@@ -1,6 +1,6 @@
 INSERT INTO users (id, username, password, email, role) VALUES (1, 'alice', 'password1', 'alice@example.com', 'USER');
 INSERT INTO users (id, username, password, email, role) VALUES (2, 'bob', 'password2', 'bob@example.com', 'ADMIN');
-INSERT INTO users (id, username, password, email, role) VALUES (3, 'rishabh', '{bcrypt}$2a$10$9BZDRHp6aRgcxdoWtg7bPOsqGb9J.2UYh0GwLmMf4sf2trdp3bbPW', 'rishabh@xyz.com', 'USER');
+INSERT INTO users (id, username, password, email, role) VALUES (3, 'rishabh', '$2y$10$i.Va5vwiX2iPljb77ot67ehOmdtzzZK1Lo8EWU9IAA5O99wrrwyzy', 'rishabh@xyz.com', 'ADMIN');
 -- password for rishabh = abc12345
 
 -- Sample Products
@@ -10,8 +10,8 @@ INSERT INTO products (id, name, description, price, stock) VALUES (3, 'Laptop', 
 
 
 -- Sample Orders
-INSERT INTO orders (id, user_id, status, total_amount, created_at) VALUES (1, 1, 'PENDING', 2000.00, CURRENT_TIMESTAMP());
-INSERT INTO orders (id, user_id, status, total_amount, created_at) VALUES (2, 2, 'CONFIRMED', 800.00, CURRENT_TIMESTAMP());
+INSERT INTO orders (id, user_id, status, total_amount, created_at) VALUES (1, 3, 'PENDING', 2000.00, CURRENT_TIMESTAMP());
+INSERT INTO orders (id, user_id, status, total_amount, created_at) VALUES (2, 3, 'CONFIRMED', 800.00, CURRENT_TIMESTAMP());
 
 -- Sample Order Items (for order 1)
 INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (1, 3, 'Laptop', 1, 1200.00);

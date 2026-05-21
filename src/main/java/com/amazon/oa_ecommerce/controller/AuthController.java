@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.amazon.oa_ecommerce.dto.LoginRequest;
+import com.amazon.oa_ecommerce.dto.UserResponse;
 import com.amazon.oa_ecommerce.model.User;
 import com.amazon.oa_ecommerce.security.JwtUtil;
 import com.amazon.oa_ecommerce.service.UserService;
@@ -30,20 +32,26 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(user));
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody User user) {
+        User saved = userService.registerUser(user);
+        UserResponse dto = new UserResponse();
+        dto.setId(saved.getId());
+        dto.setUsername(saved.getUsername());
+        dto.setEmail(saved.getEmail());
+        dto.setRole(saved.getRole());
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    request.get("username"),
-                    request.get("password")
+                    request.getUsername(),
+                    request.getPassword()
                 )
             );
-            String token = jwtUtil.generateToken(request.get("username"));
+            String token = jwtUtil.generateToken(request.getUsername());
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
