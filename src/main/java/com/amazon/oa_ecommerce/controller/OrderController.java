@@ -73,6 +73,7 @@ public class OrderController {
         List<OrderResponse> orders = orderService.getAllOrders().stream()
             .map(this::toOrderResponse)
             .collect(Collectors.toList());
+        if (orders == null) orders = List.of();
         return ResponseEntity.ok(orders);
     }
 
@@ -81,6 +82,7 @@ public class OrderController {
         List<OrderResponse> orders = orderService.getOrdersByUser(userId).stream()
             .map(this::toOrderResponse)
             .collect(Collectors.toList());
+        if (orders == null) orders = List.of();
         return ResponseEntity.ok(orders);
     }
 
