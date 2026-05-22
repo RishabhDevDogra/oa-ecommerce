@@ -24,35 +24,39 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     public Order createOrder(Order order) {
-        if (order.getItems() == null || order.getItems().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Order must have at least one item");
-        }
-        for (OrderItem item : order.getItems()) {
-            if (item.getProductId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Each item must have a valid productId and quantity > 0");
-            }
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + item.getProductId()));
-
-            if (product.getStock() < item.getQuantity()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient stock for product: " + product.getName() + " available: " + product.getStock());
-            }
-
-            // Step 3 - deduct stock
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
-        }
-
-        // Step 4 - calculate total
-        double total = order.getItems().stream()
-                .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum();
-
-        order.setTotalAmount(total);
-        order.setStatus(OrderStatus.PENDING);
-
-        return orderRepository.save(order);
+    if (order.getItems() == null || order.getItems().isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Order must have at least one item");
     }
+    for (OrderItem item : order.getItems()) {
+        if (item.getProductId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Each item must have a valid productId and quantity > 0");
+        }
+        Product product = productRepository.findById(item.getProductId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + item.getProductId()));
+
+        if (product.getStock() < item.getQuantity()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient stock for product: " + product.getName() + " available: " + product.getStock());
+        }
+
+        // Set price and product name for accuracy
+        item.setPrice(product.getPrice());
+        item.setProductName(product.getName());
+
+        // Deduct stock
+        product.setStock(product.getStock() - item.getQuantity());
+        productRepository.save(product);
+    }
+
+    // Calculate total
+    double total = order.getItems().stream()
+            .mapToDouble(item -> item.getPrice() * item.getQuantity())
+            .sum();
+
+    order.setTotalAmount(total);
+    order.setStatus(OrderStatus.PENDING);
+
+    return orderRepository.save(order);
+}
 
     public Order getOrderById(Long id) {
         return orderRepository.findById(id)

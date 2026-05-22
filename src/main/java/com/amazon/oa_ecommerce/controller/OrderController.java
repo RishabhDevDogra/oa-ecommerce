@@ -49,8 +49,10 @@ public class OrderController {
 
         Order order = new Order();
         order.setUserId(userId);
+        System.out.println("[OrderController] Creating order for userId: " + userId + ", items: " + orderRequest.getItems());
         order.setItems(orderRequest.getItems().stream().map(req -> {
             OrderItem item = new OrderItem();
+            System.out.println("[OrderController] Setting productId: " + req.getProductId() + ", quantity: " + req.getQuantity());
             item.setProductId(req.getProductId());
             item.setQuantity(req.getQuantity());
             // Product name and price will be set in service layer for accuracy
@@ -58,6 +60,7 @@ public class OrderController {
         }).collect(Collectors.toList()));
         
         Order saved = orderService.createOrder(order);
+        System.out.println("[OrderController] Order created: " + saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(toOrderResponse(saved));
     }
 
